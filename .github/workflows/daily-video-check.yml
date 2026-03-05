@@ -1,0 +1,70 @@
+name: Daily YouTube Video Check
+
+on:
+  schedule:
+    # Run every day at 8:00 AM UTC (adjust to your preferred time)
+    - cron: '0 8 * * *'
+  workflow_dispatch: # Allows manual triggering from GitHub UI
+
+jobs:
+  check-videos:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install requests
+    
+    - name: Run video check script
+      run: |
+        python newVideos.py
+    
+    - name: Copy HTML to docs folder for GitHub Pages
+      run: |
+        mkdir -p docs
+        cp new_videos.html docs/index.html
+        cp new_videos.csv docs/new_videos.csv
+        
+        # Create a simple redirect page as well
+        cat > docs/videos.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta http-equiv="refresh" content="0; url=index.html">
+        </head>
+        <body>
+          <p>Redirecting...</p>
+        </body>
+        </html>
+        EOF
+    
+    - name: Commit and push changes
+      run: |
+        git config --global user.name 'GitHub Actions Bot'
+        git config --global user.email 'actions@github.com'
+        git add -A
+        git diff --quiet && git diff --staged --quiet || git commit -m "🤖 Auto-update: New videos checked on $(date)"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
+        publish_branch: gh-pages
+        force_orphan: true

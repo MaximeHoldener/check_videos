@@ -1,0 +1,2 @@
+# Requirements for Python YouTube video checker
+requests>=2.31.0
