@@ -2,8 +2,8 @@ name: Daily YouTube Video Check
 
 on:
   schedule:
-    # Run every day at 8:00 AM UTC (adjust to your preferred time)
-    - cron: '0 8 * * *'
+    # Run every day at 4:00 PM UTC (adjust to your preferred time)
+    - cron: '0 16 * * *'
   workflow_dispatch: # Allows manual triggering from GitHub UI
 
 jobs:
